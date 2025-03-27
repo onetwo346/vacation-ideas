@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacation Ideas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            padding: 50px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        p {
+            font-size: 1.2rem;
+        }
+
+        button {
+            font-size: 1.5rem;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background: #ff6f61;
+            color: white;
+            outline: none;
+            position: relative;
+        }
+
+        button.pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            p { font-size: 1rem; }
+            button { font-size: 1.2rem; padding: 10px 20px; }
+        }
+
+        #tripResult {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="infoPage">
+        <h1>Vacation Ideas</h1>
+        <p>Need a spontaneous getaway? Tap the button and let's go!</p>
+        <button id="vacationBtn" class="pulse">Tap to Go on Vacation</button>
+    </div>
+
+    <div class="container" id="tripPage" style="display: none;">
+        <h1>Your Spontaneous Weekend Trip</h1>
+        <div id="tripResult">
+            <p>Finding the best getaway for you...</p>
+        </div>
+        <button onclick="restart()">Back</button>
+    </div>
+
+    <script>
+        document.getElementById("vacationBtn").addEventListener("click", function() {
+            document.getElementById("infoPage").style.display = "none";
+            document.getElementById("tripPage").style.display = "block";
+            getTripIdea();
+        });
+
+        function restart() {
+            document.getElementById("tripPage").style.display = "none";
+            document.getElementById("infoPage").style.display = "block";
+        }
+
+        async function getTripIdea() {
+            const API_URL = "https://api-inference.huggingface.co/models/YOUR_MODEL_NAME";
+            const API_TOKEN = "YOUR_HUGGING_FACE_TOKEN"; // Replace with your token
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${API_TOKEN}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ inputs: "Generate a fun weekend trip idea." })
+                });
+
+                const data = await response.json();
+                document.getElementById("tripResult").innerHTML = `<p>${data[0]?.generated_text || "Couldn't find a trip. Try again!"}</p>`;
+            } catch (error) {
+                document.getElementById("tripResult").innerHTML = `<p>Error fetching trip idea. Try again later.</p>`;
+            }
+        }
+    </script>
+
+</body>
+</html>
