@@ -5,29 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vacation Ideas</title>
     <style>
+        /* General Page Styling */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             text-align: center;
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+            background: url('https://source.unsplash.com/1600x900/?travel,beach') no-repeat center center/cover;
             margin: 0;
             padding: 0;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
-            padding: 50px;
-            color: white;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 500px;
+            transition: transform 0.5s ease, opacity 0.5s ease;
         }
 
         h1 {
             font-size: 2.5rem;
+            margin-bottom: 10px;
         }
 
         p {
             font-size: 1.2rem;
+            opacity: 0.8;
         }
 
-        button {
-            font-size: 1.5rem;
+        /* Pulsating Button */
+        .btn {
+            font-size: 1.4rem;
             padding: 15px 30px;
             border: none;
             border-radius: 50px;
@@ -35,10 +49,18 @@
             background: #ff6f61;
             color: white;
             outline: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            margin-top: 20px;
             position: relative;
         }
 
-        button.pulse {
+        .btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(255, 111, 97, 0.4);
+        }
+
+        .btn.pulse {
             animation: pulse 1.5s infinite;
         }
 
@@ -48,47 +70,58 @@
             100% { transform: scale(1); }
         }
 
+        /* Page Transitions */
+        .hidden {
+            transform: scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .visible {
+            transform: scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         @media (max-width: 600px) {
             h1 { font-size: 2rem; }
             p { font-size: 1rem; }
-            button { font-size: 1.2rem; padding: 10px 20px; }
-        }
-
-        #tripResult {
-            margin-top: 30px;
-            font-size: 1.2rem;
-            font-weight: bold;
+            .btn { font-size: 1.2rem; padding: 12px 25px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="container" id="infoPage">
+    <!-- Info Page -->
+    <div class="container visible" id="infoPage">
         <h1>Vacation Ideas</h1>
-        <p>Need a spontaneous getaway? Tap the button and let's go!</p>
-        <button id="vacationBtn" class="pulse">Tap to Go on Vacation</button>
+        <p>Not sure where to go? Tap below for an instant travel idea!</p>
+        <button id="vacationBtn" class="btn pulse">Tap to Go on Vacation</button>
     </div>
 
-    <div class="container" id="tripPage" style="display: none;">
+    <!-- Trip Page -->
+    <div class="container hidden" id="tripPage">
         <h1>Your Spontaneous Weekend Trip</h1>
         <div id="tripResult">
-            <p>Finding the best getaway for you...</p>
+            <p>Finding the perfect getaway for you...</p>
         </div>
-        <button onclick="restart()">Back</button>
+        <button class="btn" onclick="restart()">Back</button>
     </div>
 
     <script>
+        // Page Navigation
         document.getElementById("vacationBtn").addEventListener("click", function() {
-            document.getElementById("infoPage").style.display = "none";
-            document.getElementById("tripPage").style.display = "block";
+            document.getElementById("infoPage").classList.add("hidden");
+            document.getElementById("tripPage").classList.remove("hidden");
             getTripIdea();
         });
 
         function restart() {
-            document.getElementById("tripPage").style.display = "none";
-            document.getElementById("infoPage").style.display = "block";
+            document.getElementById("tripPage").classList.add("hidden");
+            document.getElementById("infoPage").classList.remove("hidden");
         }
 
+        // Fetch Trip Idea from Hugging Face API
         async function getTripIdea() {
             const API_URL = "https://api-inference.huggingface.co/models/YOUR_MODEL_NAME";
             const API_TOKEN = "YOUR_HUGGING_FACE_TOKEN"; // Replace with your token
@@ -100,7 +133,7 @@
                         "Authorization": `Bearer ${API_TOKEN}`,
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ inputs: "Generate a fun weekend trip idea." })
+                    body: JSON.stringify({ inputs: "Generate a unique weekend trip idea." })
                 });
 
                 const data = await response.json();
