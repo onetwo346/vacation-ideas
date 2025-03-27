@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacation Ideas Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #ff6f61;
+            --secondary-color: #4ecdc4;
+            --text-color: #ffffff;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-blur: blur(10px);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298), url('https://source.unsplash.com/1600x900/?travel,adventure') no-repeat center center/cover;
+            background-blend-mode: overlay;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .container {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 90%;
+            max-width: 550px;
+            transition: transform 0.3s ease, opacity 0.5s ease;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .btn {
+            font-size: 1.3rem;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-color);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s ease, height 0.4s ease;
+        }
+
+        .btn:hover::after {
+            width: 200%;
+            height: 200%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .page {
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+            position: absolute;
+            width: 100%;
+        }
+
+        .page.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .loading {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--secondary-color);
+            border-radius: 50%;
+            animation: spin 1s ease-in-out infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+
+            h1 { font-size: 2rem; }
+            p { font-size: 1rem; }
+            .btn { font-size: 1.1rem; padding: 10px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container page active" id="infoPage">
+        <h1>Spontaneous Travel Ideas</h1>
+        <p>Ready for an adventure? Let us spark your next getaway!</p>
+        <button id="vacationBtn" class="btn pulse tooltip" data-tooltip="Click to get inspired!">Inspire My Trip</button>
+    </div>
+
+    <div class="container page" id="tripPage">
+        <h1>Your Next Adventure</h1>
+        <div id="tripResult">
+            <p>Finding your dream escape...</p>
+        </div>
+        <div id="loadingSpinner" class="loading" style="display: none;"></div>
+        <div class="button-group">
+            <button class="btn tooltip" id="backBtn" data-tooltip="Generate a new idea">Try Again</button>
+            <button class="btn tooltip" id="saveBtn" style="display: none;" data-tooltip="Save this trip">Save Trip</button>
+        </div>
+    </div>
+
+    <script>
+        const infoPage = document.getElementById("infoPage");
+        const tripPage = document.getElementById("tripPage");
+        const vacationBtn = document.getElementById("vacationBtn");
+        const backBtn = document.getElementById("backBtn");
+        const saveBtn = document.getElementById("saveBtn");
+        const tripResult = document.getElementById("tripResult");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        vacationBtn.addEventListener("click", showTripPage);
+        backBtn.addEventListener("click", showInfoPage);
+        saveBtn.addEventListener("click", saveTrip);
+
+        function showTripPage() {
+            infoPage.classList.remove("active");
+            tripPage.classList.add("active");
+            getTripIdea();
+        }
+
+        function showInfoPage() {
+            tripPage.classList.remove("active");
+            infoPage.classList.add("active");
+            resetTripPage();
+        }
+
+        function resetTripPage() {
+            tripResult.innerHTML = '<p>Finding your dream escape...</p>';
+            saveBtn.style.display = 'none';
+            loadingSpinner.style.display = 'none';
+        }
+
+        const tripIdeas = [
+            "A cozy cabin retreat in the misty mountains of Colorado",
+            "A vibrant weekend exploring the street art and cuisine of Mexico City",
+            "A serene beach getaway in the hidden coves of Costa Rica",
+            "An adventure-packed trip to the national parks of Utah",
+            "A cultural exploration of the historic districts in New Orleans",
+            "A wine-tasting journey through the vineyards of Napa Valley",
+            "A scenic road trip along the Pacific Coast Highway",
+            "A relaxing spa weekend in the thermal springs of Iceland"
+        ];
+
+        async function getTripIdea() {
+            tripResult.innerHTML = '';
+            loadingSpinner.style.display = 'block';
+            saveBtn.style.display = 'none';
+
+            try {
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated delay
+                const randomTrip = tripIdeas[Math.floor(Math.random() * tripIdeas.length)];
+                tripResult.innerHTML = `<p>${randomTrip}</p>`;
+                loadingSpinner.style.display = 'none';
+                saveBtn.style.display = 'inline-block';
+            } catch (error) {
+                loadingSpinner.style.display = 'none';
+                tripResult.innerHTML = `<p>Oops! Something went wrong. Try again!</p>`;
+            }
+        }
+
+        function saveTrip() {
+            const currentTrip = tripResult.textContent;
+            localStorage.setItem('savedTrip', currentTrip);
+            alert(`Saved: ${currentTrip}`);
+        }
+
+        // Load saved trip if exists
+        window.addEventListener('load', () => {
+            const savedTrip = localStorage.getItem('savedTrip');
+            if (savedTrip && tripPage.classList.contains('active')) {
+                tripResult.innerHTML = `<p>${savedTrip}</p>`;
+                saveBtn.style.display = 'inline-block';
+            }
+        });
+
+        // Accessibility: Keyboard navigation
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    btn.click();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
